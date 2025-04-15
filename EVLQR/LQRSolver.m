@@ -1,99 +1,105 @@
-%% Part 6
-% Filter specifications
-order = 6;
-cutoff = 0.70;  % Cutoff frequency in radians/sample
+% Magic Formula Coefficients
+roadD = 1; % Peak Factor
+roadC = 1.65; % Shape Factor
+roadB = 10; % Stiffness Factor
+roadE = 0.01; % Curvature Factor
 
-% Design the Butterworth filter
-[b, a] = butter(order, cutoff / pi, 'low');  % Normalize cutoff frequency by pi
+% Environment Constants
+gravitationalAcceleration = 9.81; % m/s^2
+roadSlope = 0; % Road slope angle (radians)
 
-% Compute the frequency response
-[h, w] = freqz(b, a, 8000);
+% Vehicle Parameters
+vehicleMass = 1500; % kg
+wheelInertia = 0.8; % kg*m^2
+wheelRadius = 0.3; % m
 
-% Plot the magnitude response
-figure;
-plot(w, abs(h), 'LineWidth', 1.5);
-hold on;
-xline(cutoff, '--r', 'Cutoff Frequency', 'LabelVerticalAlignment', 'middle');
-title('Magnitude Response of 4th-Order Butterworth Filter');
-xlabel('Frequency [radians/sample]');
-ylabel('Magnitude');
-grid on;
-legend('Magnitude Response', 'Location', 'best');
-xlim([0, pi]);
-ylim([0, 1.1]);
-xticks(0:pi/4:pi);
-xticklabels({'0', '\pi/4', '\pi/2', '3\pi/4', '\pi'});
-hold off;
+% Motor Parameters
+motorInertia = 1; % kg*m^2
+motorResistance = 0.1; % Ohms
+motorInductance = 0.005; % H
+motorTorqueConstant = 5; % Nm/A
+motorBackEMFConstant = 0.004; % V⋅s/rad
 
-%% Part D and E
-% Define the parameters
-M = 60;  % Length of the envelope sequence
-n = 0:M; % Time indices for the envelope
+% Coast Down Coefficients
+C0 = 194.87; % Constant resistance
+C1 = 3.87;   % Rolling resistance coefficient
+C2 = 0.37;   % Aerodynamic drag coefficient
 
-% Define the envelope sequence w[n]
-w = 0.54 - 0.46 * cos(2 * pi * n / M);
+% Linearized Pacejka Slope
+Clambda = LinearizedMagicFormulaCalculator(roadD, roadC, roadB, roadE);
 
-% Define the three narrowband pulses
-x1 = w .* cos(0.2 * pi * n);               % x1[n] = w[n] * cos(0.2πn)
-x2 = w .* cos(0.4 * pi * n - pi/2);         % x2[n] = w[n] * cos(0.4πn - π/2)
-x3 = w .* cos(0.8 * pi * n + pi/5);         % x3[n] = w[n] * cos(0.8πn + π/5)
+% State-Space Model Matrices
+% Define A matrix incorporating vehicle and motor dynamics
+A = [
+    (- 4* Clambda * gravitationalAcceleration * cos(roadSlope)) / wheelRadius - C1 / vehicleMass, 4*Clambda * gravitationalAcceleration * cos(roadSlope), 0;
+    (4*Clambda * gravitationalAcceleration * cos(roadSlope)) / (motorInertia + wheelInertia), - (4*Clambda * wheelRadius * vehicleMass * gravitationalAcceleration * cos(roadSlope)) / (motorInertia + wheelInertia), motorTorqueConstant / (motorInertia + wheelInertia);
+    0, -motorBackEMFConstant / motorInductance, -motorResistance / motorInductance
+];
 
-% Construct the complete input signal x[n]
-x = [x3, zeros(1, M+1), x1, zeros(1, M+1), x2];
+% Define B matrix with input voltage (Vin)
+B = [
+    0;
+    0;
+    1 / motorInductance
+];
 
-% Plot the input signal x[n]
-figure;
-subplot(2, 1, 1);
-stem(0:length(x)-1, x, 'filled', 'MarkerSize', 3);
-title('Waveform of Signal x[n]');
-xlabel('Sample Number (n)');
-ylabel('Amplitude');
-grid on;
+% Output matrix (only velocity is measured)
+C = [1 1 1]; 
+D = 0; 
 
-% Compute the DTFT of x[n]
-N = 1024;  % Number of frequency points
-X = fft(x, N);  % Compute the DFT
-f = (-N/2:N/2-1) * (2 * pi / N);  % Frequency axis in radians
+% Display state-space matrices
+disp('State-Space Matrices:');
+disp('A Matrix:');
+disp(A);
+disp('B Matrix:');
+disp(B);
 
-% Plot the magnitude of the DTFT of x[n]
-subplot(2, 1, 2);
-plot(f, fftshift(abs(X)));
-title('Magnitude of DTFT of x[n]');
-xlabel('\omega (radians)');
-ylabel('|X(e^{j\omega})|');
-grid on;
+% LQR Controller Design
+% Define weight matrices
+% Penalizes velocity, wheel angular velocity, and armature current deviations
+Q = diag([100 0.000000000001, 0.000001]); 
+% Penalizes input voltage
+R = 0.001; 
 
-% Design the Butterworth filter (from previous steps)
-omega_p = 0.2 * pi;  % Passband edge frequency
-omega_s = 0.3 * pi;  % Stopband edge frequency
-Rp = 1;  % Passband ripple in dB
-As = 15; % Stopband attenuation in dB
+% Display the weights for states and input
+disp('LQR Weighting Matrices:');
+disp('State Weights (Q):');
+fprintf('Velocity State Weight: %.2f\n', Q(1,1));
+fprintf('Wheel Angular Velocity State Weight: %.2f\n', Q(2,2));
+fprintf('Armature Current State Weight: %.2f\n', Q(3,3));
+disp('Input Weight (R):');
+fprintf('Voltage Input Weight: %.2f\n', R);
 
-% Determine the order and cutoff frequency
-[N, Wn] = buttord(omega_p / pi, omega_s / pi, Rp, As);
+% Compute LQR gain
+K = lqr(A, B, Q, R);
 
-% Design the Butterworth filter
-[b, a] = butter(N, Wn);
+% Display the LQR gain
+disp('LQR Gain (K):');
+disp(K);
 
-% Filter the input signal x[n] using the designed filter
-y = filter(b, a, x);
+% Store the gains for Simulink
+GainVf = K(1); % Gain for vehicle velocity state
+GainWf = K(2); % Gain for wheel angular velocity state
+GainIf = K(3); % Gain for armature current state
 
-% Plot the filtered signal y[n]
-figure;
-subplot(2, 1, 1);
-stem(0:length(y)-1, y, 'filled', 'MarkerSize', 3);
-title('Filtered Signal y[n]');
-xlabel('Sample Number (n)');
-ylabel('Amplitude');
-grid on;
+% Building the State-Space Model
+% Subtract BK from A to incorporate the state feedback
+sys = ss(A - B * K, B, C, D);
 
-% Compute the DFT of the filtered signal y[n]
-Y = fft(y, N);  % Compute the DFT
+% Compute the DC gain for scaling the reference input
+dc_gain = dcgain(sys);
+GainVr = 1; % Scale the reference input to ensure output amplitude is 1
 
-% Plot the magnitude of the DFT of y[n]
-subplot(2, 1, 2);
-plot(f, fftshift(abs(Y)));
-title('Magnitude of DFT of Filtered Signal y[n]');
-xlabel('\omega (radians)');
-ylabel('|Y(e^{j\omega})|');
-grid on;
+% Plot the step response of the scaled system
+disp('Scaled Step Response:');
+scaled_sys = GainVr * sys; % Apply the scaled reference signal
+
+% Uncomment to Compute Step Response
+% step(scaled_sys);
+
+% Display the Simulink gain variables
+disp('Simulink Gain Variables:');
+fprintf('GainVr (Reference Velocity Gain) = %.6f\n', GainVr);
+fprintf('GainWf (Wheel Angular Velocity Gain) = %.6f\n', GainWf);
+fprintf('GainVf (Vehicle Velocity Gain) = %.6f\n', GainVf);
+fprintf('GainIf (Armature Current Gain) = %.6f\n', GainIf);
