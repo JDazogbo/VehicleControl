@@ -14,13 +14,20 @@ function slope = LinearizedMagicFormulaCalculator(D, C, B, E)
     %   slope = LinearizedMagicFormulaCalculator(D, C, B, E);
 
     % Define the Pacejka Magic Formula as a function handle
-    %pacejkaFormula = @(x) D * sin(C * atan(B * x - E * (B * x - atan(B * x))));
+    pacejkaFormula = @(x) D * sin(C * atan(B * x - E * (B * x - atan(B * x))));
     
     % Linear Approximation of Pacejka's
     % From the MATLAB Documentation, https://www.mathworks.com/help/sdl/ref/tireroadinteractionmagicformula.html
     
-    slope = B*C*D
+    slope = B*C*D;
+    slip = linspace(0, 1, 500);
+    force = pacejkaFormula(slip);
 
-    % Display the result
-    fprintf('The slope of the Pacejka formula at zero is: %.6f\n', slope);
+    % Plot
+    figure;
+    plot(slip, force, 'LineWidth', 2);
+    xlabel('Slip Ratio');
+    ylabel('Normalized Tire Force');
+    title('Pacejka Magic Formula Curve');
+    grid on;
 end

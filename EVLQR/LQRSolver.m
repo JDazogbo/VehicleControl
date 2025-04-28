@@ -1,3 +1,6 @@
+fprintf(['\n\n----------------------LQR Computing Script----------------------\n\n' ...
+    '']);
+
 % Magic Formula Coefficients
 roadD = 1; % Peak Factor
 roadC = 1.65; % Shape Factor
@@ -44,15 +47,8 @@ B = [
 ];
 
 % Output matrix (only velocity is measured)
-C = [1 1 1]; 
+C = [1 0 0]; 
 D = 0; 
-
-% Display state-space matrices
-disp('State-Space Matrices:');
-disp('A Matrix:');
-disp(A);
-disp('B Matrix:');
-disp(B);
 
 % LQR Controller Design
 % Define weight matrices
@@ -62,13 +58,13 @@ Q = diag([100 0.000000000001, 0.000001]);
 R = 0.001; 
 
 % Display the weights for states and input
-disp('LQR Weighting Matrices:');
-disp('State Weights (Q):');
-fprintf('Velocity State Weight: %.2f\n', Q(1,1));
-fprintf('Wheel Angular Velocity State Weight: %.2f\n', Q(2,2));
-fprintf('Armature Current State Weight: %.2f\n', Q(3,3));
-disp('Input Weight (R):');
-fprintf('Voltage Input Weight: %.2f\n', R);
+%disp('LQR Weighting Matrices:');
+%disp('State Weights (Q):');
+%fprintf('Velocity State Weight: %.2f\n', Q(1,1));
+%fprintf('Wheel Angular Velocity State Weight: %.2f\n', Q(2,2));
+%fprintf('Armature Current State Weight: %.2f\n', Q(3,3));
+%disp('Input Weight (R):');
+%fprintf('Voltage Input Weight: %.2f\n', R);
 
 % Compute LQR gain
 K = lqr(A, B, Q, R);
