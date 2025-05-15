@@ -24,10 +24,10 @@ function slope = LinearizedMagicFormulaCalculator(D, C, B, E)
     force = pacejkaFormula(slip);
 
     % Plot
-    figure;
-    plot(slip, force, 'LineWidth', 2);
-    xlabel('Slip Ratio');
-    ylabel('Normalized Tire Force');
-    title('Pacejka Magic Formula Curve');
-    grid on;
+    % figure;
+    % plot(slip, force, 'LineWidth', 2);
+    % xlabel('Slip Ratio');
+    % ylabel('Normalized Tire Force');
+    % title('Pacejka Magic Formula Curve');
+    % grid on;
 end
