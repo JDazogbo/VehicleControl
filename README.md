@@ -19,6 +19,11 @@ This repository contains a simulation-based study of vehicle power management sy
   <p><em>Figure 2: Example Drive cycle used to assess the performance of a controller</em></p>
 </div>
 
+<div align="center">
+  <img src="Ressources/Images/MMAEWetTarmac.png" alt="Wet Tarmac Estimation" style="width:70%;" />
+  <p><em>Figure 3: Acceleration profile of the vehicle and the corresponding acceleration estimations by road condition</em></p>
+</div>
+
 ## Repository Structure
 
 The [`EVLQR`](./EVLQR) directory contains all the materials related to the Linear Quadratic Regulator (LQR)-based energy management controller. Inside, you'll find scripts such as `LQRSolver.m` for solving the LQR control problem, as well as the main Simulink model [`VehicleEnergyManagementSystem.slx`](./EVLQR/VehicleEnergyManagementSystem.slx), which implements the electric vehicle control architecture.

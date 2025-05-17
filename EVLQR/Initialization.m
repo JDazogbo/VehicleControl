@@ -1,12 +1,34 @@
-fprintf(['\n\n----------------------LQR Computing Script----------------------\n\n' ...
+fprintf(['\n\n----------------------Simulation Initialisation Script----------------------\n\n' ...
     '']);
 
-% Magic Formula Coefficients
-roadD = 1; % Peak Factor
-roadC = 1.65; % Shape Factor
-roadB = 10; % Stiffness Factor
-roadE = 0.01; % Curvature Factor
+% --- SELECT ROAD FRICTION PRESET ---
+% Choose one of the following: 'dry_tarmac', 'wet_tarmac', 'snow', 'ice'
+selectedPreset = 'ice';
 
+% Define road friction presets: [B, C, D, E]
+presets.dry_tarmac = [10, 1.9, 1.0, 0.97];
+presets.wet_tarmac = [12, 2.3, 0.82, 1.0];
+presets.snow       = [5,  2.0, 0.3, 1.0];
+presets.ice        = [4,  2.0, 0.1, 1.0];
+
+% Apply selected preset
+if isfield(presets, selectedPreset)
+    coeffs = presets.(selectedPreset);
+    roadB = coeffs(1);
+    roadC = coeffs(2);
+    roadD = coeffs(3);
+    roadE = coeffs(4);
+    fprintf('✔ Using "%s" preset: B=%.2f, C=%.2f, D=%.2f, E=%.2f\n\n', ...
+        selectedPreset, roadB, roadC, roadD, roadE);
+else
+    error('❌ Unknown road friction preset: "%s"\nAvailable options: %s', ...
+        selectedPreset, strjoin(fieldnames(presets), ', '));
+end
+
+
+
+
+% --- COMPUTE LQR CONTROLLER GAINS ---
 % Environment Constants
 gravitationalAcceleration = 9.81; % m/s^2
 roadSlope = 0; % Road slope angle (radians)
@@ -99,3 +121,4 @@ fprintf('GainVr (Reference Velocity Gain) = %.6f\n', GainVr);
 fprintf('GainWf (Wheel Angular Velocity Gain) = %.6f\n', GainWf);
 fprintf('GainVf (Vehicle Velocity Gain) = %.6f\n', GainVf);
 fprintf('GainIf (Armature Current Gain) = %.6f\n', GainIf);
+
