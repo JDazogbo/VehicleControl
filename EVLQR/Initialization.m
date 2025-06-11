@@ -1,9 +1,19 @@
 fprintf(['\n\n----------------------Simulation Initialisation Script----------------------\n\n' ...
     '']);
 
-% --- SELECT ROAD FRICTION PRESET ---
+% --- Road Condition Presets ---
+roadPresets = {
+    'Dry Tarmac', [10, 1.9, 1.0, 0.97];
+    'Wet Tarmac', [12, 2.3, 0.82, 1.0];
+    'Snow',       [5,  2.0, 0.3, 1.0];
+    'Ice',        [4,  2.0, 0.1, 1.0];
+};
+
+nPresets = size(roadPresets, 1);
+
+% --- SELECT SIMULATION ROAD FRICTION PRESET ---
 % Choose one of the following: 'dry_tarmac', 'wet_tarmac', 'snow', 'ice'
-selectedPreset = 'ice';
+selectedPreset = 'dry_tarmac';
 
 % Define road friction presets: [B, C, D, E]
 presets.dry_tarmac = [10, 1.9, 1.0, 0.97];
@@ -25,21 +35,13 @@ else
         selectedPreset, strjoin(fieldnames(presets), ', '));
 end
 
-
-
-
-% --- COMPUTE LQR CONTROLLER GAINS ---
-% Environment Constants
-gravitationalAcceleration = 9.81; % m/s^2
-roadSlope = 0; % Road slope angle (radians)
-
-% Vehicle Parameters
-vehicleMass = 1500; % kg
-wheelInertia = 0.8; % kg*m^2
-wheelRadius = 0.3; % m
-
-% Motor Parameters
-motorInertia = 1; % kg*m^2
+% --- Constants ---
+g = 9.81;             % Gravity
+roadSlope = 0;        % Radians
+vehicleMass = 1500;   % kg
+wheelInertia = 0.8;   % kg·m^2
+wheelRadius = 0.3;    % m
+motorInertia = 1;     % kg·m^2
 motorResistance = 0.1; % Ohms
 motorInductance = 0.005; % H
 motorTorqueConstant = 5; % Nm/A
@@ -50,75 +52,41 @@ C0 = 194.87; % Constant resistance
 C1 = 3.87;   % Rolling resistance coefficient
 C2 = 0.37;   % Aerodynamic drag coefficient
 
-% Linearized Pacejka Slope
-Clambda = LinearizedMagicFormulaCalculator(roadD, roadC, roadB, roadE);
 
-% State-Space Model Matrices
-% Define A matrix incorporating vehicle and motor dynamics
-A = [
-    (- 4* Clambda * gravitationalAcceleration * cos(roadSlope)) / wheelRadius - C1 / vehicleMass, 4*Clambda * gravitationalAcceleration * cos(roadSlope), 0;
-    (4*Clambda * gravitationalAcceleration * cos(roadSlope)) / (motorInertia + wheelInertia), - (4*Clambda * wheelRadius * vehicleMass * gravitationalAcceleration * cos(roadSlope)) / (motorInertia + wheelInertia), motorTorqueConstant / (motorInertia + wheelInertia);
-    0, -motorBackEMFConstant / motorInductance, -motorResistance / motorInductance
-];
+% --- LQR Weights ---
+Q = diag([100, 1e-12, 1e-6]);  % State penalties
+R = 0.001;                     % Input penalty
 
-% Define B matrix with input voltage (Vin)
-B = [
-    0;
-    0;
-    1 / motorInductance
-];
+% --- Preallocate Gain Matrix ---
+% Row = preset index, Col = [Vf Wf If]
+LQRGains = zeros(nPresets, 3);
 
-% Output matrix (only velocity is measured)
-C = [1 0 0]; 
-D = 0; 
+% --- Loop Through Each Road Condition ---
+for i = 1:nPresets
+    presetName = roadPresets{i,1};
+    coeffs = roadPresets{i,2};
+    [B, C, D, E] = deal(coeffs(1), coeffs(2), coeffs(3), coeffs(4));
 
-% LQR Controller Design
-% Define weight matrices
-% Penalizes velocity, wheel angular velocity, and armature current deviations
-Q = diag([100 0.000000000001, 0.000001]); 
-% Penalizes input voltage
-R = 0.001; 
+    Clambda = LinearizedMagicFormulaCalculator(D, C, B, E);
 
-% Display the weights for states and input
-%disp('LQR Weighting Matrices:');
-%disp('State Weights (Q):');
-%fprintf('Velocity State Weight: %.2f\n', Q(1,1));
-%fprintf('Wheel Angular Velocity State Weight: %.2f\n', Q(2,2));
-%fprintf('Armature Current State Weight: %.2f\n', Q(3,3));
-%disp('Input Weight (R):');
-%fprintf('Voltage Input Weight: %.2f\n', R);
+    A = [
+        (-4 * Clambda * g * cos(roadSlope)) / wheelRadius - C1 / vehicleMass,  4 * Clambda * g * cos(roadSlope),  0;
+        (4 * Clambda * g * cos(roadSlope)) / (motorInertia + wheelInertia), ...
+        - (4 * Clambda * wheelRadius * vehicleMass * g * cos(roadSlope)) / (motorInertia + wheelInertia), ...
+        motorTorqueConstant / (motorInertia + wheelInertia);
+        0, -motorBackEMFConstant / motorInductance, -motorResistance / motorInductance
+    ];
 
-% Compute LQR gain
-K = lqr(A, B, Q, R);
+    Bmat = [0; 0; 1 / motorInductance];
 
-% Display the LQR gain
-disp('LQR Gain (K):');
-disp(K);
+    % Compute LQR gain
+    K = lqr(A, Bmat, Q, R);
 
-% Store the gains for Simulink
-GainVf = K(1); % Gain for vehicle velocity state
-GainWf = K(2); % Gain for wheel angular velocity state
-GainIf = K(3); % Gain for armature current state
+    % Store
+    LQRGains(i, :) = K;
 
-% Building the State-Space Model
-% Subtract BK from A to incorporate the state feedback
-sys = ss(A - B * K, B, C, D);
+    fprintf('✔ %s LQR gains: [%.6f, %.6f, %.6f]\n', presetName, K(1), K(2), K(3));
+end
 
-% Compute the DC gain for scaling the reference input
-dc_gain = dcgain(sys);
-GainVr = 1; % Scale the reference input to ensure output amplitude is 1
-
-% Plot the step response of the scaled system
-disp('Scaled Step Response:');
-scaled_sys = GainVr * sys; % Apply the scaled reference signal
-
-% Uncomment to Compute Step Response
-% step(scaled_sys);
-
-% Display the Simulink gain variables
-disp('Simulink Gain Variables:');
-fprintf('GainVr (Reference Velocity Gain) = %.6f\n', GainVr);
-fprintf('GainWf (Wheel Angular Velocity Gain) = %.6f\n', GainWf);
-fprintf('GainVf (Vehicle Velocity Gain) = %.6f\n', GainVf);
-fprintf('GainIf (Armature Current Gain) = %.6f\n', GainIf);
-
+% Export to Simulink Workspace
+assignin('base', 'LQRGains', LQRGains);
