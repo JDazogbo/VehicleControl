@@ -36,7 +36,7 @@ else
 end
 
 % --- Constants ---
-g = 9.81;             % Gravity
+gravitationalAcceleration = 9.81;             % Gravity
 roadSlope = 0;        % Radians
 vehicleMass = 1500;   % kg
 wheelInertia = 0.8;   % kg·m^2
@@ -54,8 +54,8 @@ C2 = 0.37;   % Aerodynamic drag coefficient
 
 
 % --- LQR Weights ---
-Q = diag([100, 1e-12, 1e-6]);  % State penalties
-R = 0.001;                     % Input penalty
+Q = diag([100, 1e-12, 1e-6]);  % State penalties - Vehicle Velocity, Angular Velocity, Armature Current
+R = 10;                     % Input penalty
 
 % --- Preallocate Gain Matrix ---
 % Row = preset index, Col = [Vf Wf If]
