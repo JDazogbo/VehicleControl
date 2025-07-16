@@ -4,6 +4,7 @@ function LQRGains = GenerateLQRGains(selectedPreset, Q, R, terrainEstimate)
 % Inputs (optional):
 %   selectedPreset (string) - Road preset to highlight (e.g. 'dry_tarmac')
 %   Q (3x3 matrix)           - LQR state cost matrix
+%                              -> [Velocity Penalty, Angular Velocity Penalty, Current Penalty]
 %   R (scalar)               - LQR input cost
 %   terrainEstimate          - Selected Road Condition preset for the
 %                              underlying controller model. 
