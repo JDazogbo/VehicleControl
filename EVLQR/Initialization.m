@@ -2,8 +2,8 @@ warning('off');
 
 % Controller parameters
 terrainType = 'dry_tarmac';
-Q = diag([100, 1e-12, 1e-6]); % [Velocity Penalty, Angular Velocity Penalty, Current Penalty]
-R = 1e-4; % Input Penalty
+Q = diag([100, 1e-12, 1e-12]); % [Velocity Penalty, Angular Velocity Penalty, Current Penalty]
+R = 1e-5; % Input Penalty
 
 
 % Call the gain generator with these parameters
