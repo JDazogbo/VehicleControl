@@ -20,8 +20,13 @@ This repository contains a simulation-based study of vehicle power management sy
 </div>
 
 <div align="center">
+  <img src="Ressources\Images\AdaptiveControllerDesign.png" alt="Adaptive Controller Flow Chart" style="width:70%;" />
+  <p><em>Figure 3: Multi-Model Adaptive Estimator (MMAE) integration design with the vehicle velocity tracking algorithm </em></p>
+</div>
+
+<div align="center">
   <img src="Ressources/Images/MMAEWetTarmac.png" alt="Wet Tarmac Estimation" style="width:70%;" />
-  <p><em>Figure 3: Acceleration profile of the vehicle and the corresponding acceleration estimations by road condition</em></p>
+  <p><em>Figure 4: Acceleration profile of the vehicle and the corresponding acceleration estimations by road condition</em></p>
 </div>
 
 ## Repository Structure
