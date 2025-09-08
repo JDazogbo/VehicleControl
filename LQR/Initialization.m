@@ -2,8 +2,8 @@ warning('off');
 
 % Controller parameters
 terrainType = 'dry_tarmac';
-Q = diag([100, 1e-12, 1e-12]); % [Velocity Penalty, Angular Velocity Penalty, Current Penalty]
-R = 1e-5; % Input Penalty
+Q = diag([50, 1e-12, 1e-12]); % [Velocity Penalty, Angular Velocity Penalty, Current Penalty]
+R = 1e-6; % Input Penalty
 
 
 % Call the gain generator with these parameters
@@ -17,6 +17,8 @@ R = 1e-5; % Input Penalty
 terrainEstimator = 5;
 
 GenerateLQRGains(terrainType, Q, R, terrainEstimator);
+
+
 
 
 % Set the scope title using the same terrain and estimator info
