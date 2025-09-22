@@ -32,3 +32,6 @@ octave-workspace
 
 # Old Matlab versions
 *.slx.r*
+
+# Databases
+*.db
