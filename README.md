@@ -59,7 +59,11 @@ To address uncertainty in the system dynamics, the project incorporates a **Mult
 
 ## Repository Structure
 
-The [`EVLQR`](./EVLQR) directory contains all the materials related to the Linear Quadratic Regulator (LQR)-based energy management controller. Inside, you'll find scripts such as [`GenerateLQRGains.m`](./EVLQR/GenerateLQRGains.m) for solving the LQR control problem, as well as the main Simulink model [`VehicleEnergyManagementSystem.slx`](./EVLQR/VehicleEnergyManagementSystem.slx), which implements the electric vehicle control architecture.
+The [`PID`](./PID) directory provides the baseline Proportional–Integral–Derivative controller design. It includes MATLAB/Simulink implementations for closed-loop vehicle speed control and serves as a benchmark for comparing LQR and MPC performance.
+
+The [`LQR`](./LQR) directory contains all the materials related to the Linear Quadratic Regulator (LQR)-based energy management controller. Inside, you'll find scripts such as [`GenerateLQRGains.m`](./EVLQR/GenerateLQRGains.m) for solving the LQR control problem, as well as the main Simulink model [`VehicleEnergyManagementSystem.slx`](./EVLQR/VehicleEnergyManagementSystem.slx), which implements the electric vehicle control architecture with the Multi-Model-Adaptive-Estimation.
+
+The [`MPC`](./MPC) directory contains the implementation of the Adaptive Model Predictive Control. It includes MATLAB scripts for building prediction matrices, formulating the quadratic programming problem, and SIMULINK models showcasing the MPC integration with road condition estimation.
 
 The [`MMAE`](./MMAE) folder includes tools and files for Multi-Model Adaptive Estimator. Of particular importance is the Simulink toolbox [`MultiModelToolbox.slx`](./MMAE/MultiModelToolbox.slx), which enables dynamic model switching and parameter estimation within the simulation environment.
 
