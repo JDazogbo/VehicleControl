@@ -14,10 +14,38 @@ This repository contains a simulation-based study of vehicle power management sy
   <p><em>Figure 1: Block diagram of the vehicle simulation environment in simulink</em></p>
 </div>
 
+## Problem Formulation
+
+The central challenge of electric vehicle (EV) power management lies in balancing **energy efficiency** with **accurate velocity tracking**, all under **uncertain and varying road conditions**. Road friction directly affects vehicle traction, dynamics, and thus energy expenditure, yet it cannot be measured exactly in real time.  
+
+This problem can be framed as a constrained optimization objective:
+
+- **Velocity Tracking**: minimize the deviation between actual vehicle speed and a desired reference profile (e.g., drive cycles).  
+- **Energy Efficiency**: minimize total energy consumption over the driving cycle.  
+
 <div align="center">
   <img src="Ressources/Images/DriveCycle.png" alt="Drive Cycle Profile" style="width:70%;" />
   <p><em>Figure 2: Example Drive cycle used to assess the performance of a controller</em></p>
 </div>
+
+The mathematical models of vehicle motion (Newton’s law), tire-road dynamics (Pacejka’s Magic Formula), and motor electrical dynamics (armature equations) serve as the foundation. These are combined into a linearized state-space system, where the control input is the motor voltage and the main measured output is vehicle velocity.  
+
+The presence of nonlinearities, external disturbances, and uncertain coefficients (e.g., road surface condition) requires robust control methods, often involving state estimation and adaptive architectures.
+
+## Contributions
+
+This repository demonstrates a comparative investigation of **three classical control strategies** applied to the EV power management problem:
+
+- **PID Control**: A baseline feedback controller tuned for stability and responsiveness.  
+- **LQR Control**: An optimal full-state feedback regulator minimizing quadratic costs of velocity deviation, wheel slip, and armature current.  
+- **MPC Control**: A predictive controller that handles constraints explicitly, optimizing control inputs over a finite horizon.
+
+<div align="center">
+  <img src="Ressources\Images\MPCControllerMask.png" alt="Model Predictive Control SIMULINK Mask" style="width:70%;" />
+  <p><em>Figure 3: Model Predictive Control SIMULINK Mask </em></p>
+</div>
+
+To address uncertainty in the system dynamics, the project incorporates a **Multi-Model Adaptive Estimation (MMAE)** framework. Rather than requiring precise knowledge of the true road condition, MMAE estimates the effective friction coefficient and dynamically selects among pre-tuned controllers. This adaptation improves both **energy efficiency** and **longitudinal tracking performance**, outperforming fixed-gain designs under uncertain driving conditions.
 
 <div align="center">
   <img src="Ressources\Images\AdaptiveControllerDesign.png" alt="Adaptive Controller Flow Chart" style="width:70%;" />
