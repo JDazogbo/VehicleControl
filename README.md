@@ -57,6 +57,11 @@ To address uncertainty in the system dynamics, the project incorporates a **Mult
   <p><em>Figure 4: Acceleration profile of the vehicle and the corresponding acceleration estimations by road condition</em></p>
 </div>
 
+<div align="center">
+  <img src="Ressources/Images/MPCControllerResponse.png" alt="MPC Controller Response" style="width:70%;" />
+  <p><em>Figure 5: Multi-Model MPC Response </em></p>
+</div>
+
 ## Repository Structure
 
 The [`PID`](./PID) directory provides the baseline Proportional–Integral–Derivative controller design. It includes MATLAB/Simulink implementations for closed-loop vehicle speed control and serves as a benchmark for comparing LQR and MPC performance.
