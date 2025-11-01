@@ -68,3 +68,12 @@ The [`MPC`](./MPC) directory contains the implementation of the Adaptive Model P
 The [`MMAE`](./MMAE) folder includes tools and files for Multi-Model Adaptive Estimator. Of particular importance is the Simulink toolbox [`MultiModelToolbox.slx`](./MMAE/MultiModelToolbox.slx), which enables dynamic model switching and parameter estimation within the simulation environment.
 
 The [`Ressources`](./Ressources) folder contains supporting materials for the project. Within it, the [`Images`](./Ressources/Images) subfolder holds all figures and visual assets used in the report. The [`Derivations`](./Ressources/Derivations) subfolder includes the [Vehicle and Road Friction State Space Model Derivation](Ressources/Derivations/VehicleRoadStateSpace.pdf) upon which the control problem is vehicle dynamics based.
+
+## Required MATLAB Toolboxes
+
+- [MATLAB](https://www.mathworks.com/products/matlab.html)
+- [Simulink](https://www.mathworks.com/products/simulink.html)
+- [Control System Toolbox](https://www.mathworks.com/products/control.html)
+- [Powertrain Blockset](https://www.mathworks.com/products/powertrain.html)
+- [Vehicle Dynamics Blockset](https://www.mathworks.com/products/vehicle-dynamics.html)
+- [Optimization Toolbox](https://www.mathworks.com/products/optimization.html)
